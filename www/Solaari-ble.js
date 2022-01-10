@@ -33,7 +33,7 @@ var stringToArrayBuffer = function(str) {
     });
   }
   
-  var bluetoothleName = "SolaariBLE";
+  var bluetoothleName = "Solaari-ble";
   var ble = {
   
     // SLAVE
