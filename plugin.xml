@@ -7,9 +7,8 @@
 
     <name>Solaari-ble</name>
 
-
-    <js-module name="Solaari-ble" src="www/Solaari-ble.js">
-        <clobbers target="cordova.plugins.Solaari-ble" />
+    <js-module name="solaarible" src="www/Solaari-ble.js">
+        <clobbers target="window.Solaari-ble" />
     </js-module>
     
     <platform name="android">
