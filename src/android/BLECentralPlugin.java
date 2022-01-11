@@ -167,7 +167,6 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-        LOG.d(TAG, "action = %s", action);
 
         if (bluetoothAdapter == null) {
             Activity activity = cordova.getActivity();
@@ -176,7 +175,6 @@ public class BLECentralPlugin extends CordovaPlugin {
                     .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE) &&
                     Build.VERSION.SDK_INT >= 18;
             if (!hardwareSupportsBLE) {
-                LOG.w(TAG, "This hardware does not support Bluetooth Low Energy.");
                 callbackContext.error("This hardware does not support Bluetooth Low Energy.");
                 return false;
             }
@@ -494,92 +492,141 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             for (int i = 0; i < characteristicsIn.length(); i++) {
                 JSONObject characteristicIn = null;
-
+          
                 try {
-                    characteristicIn = characteristicsIn.getJSONObject(i);
+                  characteristicIn = characteristicsIn.getJSONObject(i);
                 } catch (JSONException ex) {
-                    continue;
+                  continue;
                 }
-
-                UUID characteristicUuid = uuidFromString(characteristicIn.getString("uuid"));
-
+          
+                UUID characteristicUuid = getUUID(characteristicIn.optString("uuid", null));
+          
                 boolean includeClientConfiguration = false;
-
+          
                 JSONObject propertiesIn = characteristicIn.optJSONObject("properties");
                 int properties = 0;
                 if (propertiesIn != null) {
-                    if (propertiesIn.optString("broadcast", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_BROADCAST;
-                    }
-                    if (propertiesIn.optString("extendedProps", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS;
-                    }
-                    if (propertiesIn.optString("indicate", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_INDICATE;
-                        includeClientConfiguration = true;
-                    }
-                    if (propertiesIn.optString("notify", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_NOTIFY;
-                        includeClientConfiguration = true;
-                    }
-                    if (propertiesIn.optString("read", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_READ;
-                    }
-                    if (propertiesIn.optString("signedWrite", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE;
-                    }
-                    if (propertiesIn.optString("write", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_WRITE;
-                    }
-                    if (propertiesIn.optString("writeNoResponse", null) != null) {
-                        properties |= BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE;
-                    }
-                    if (propertiesIn.optString("notifyEncryptionRequired", null) != null) {
-                        properties |= 0x100;
-                    }
-                    if (propertiesIn.optString("indicateEncryptionRequired", null) != null) {
-                        properties |= 0x200;
-                    }
+                  if (propertiesIn.optString("broadcast", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_BROADCAST;
+                  }
+                  if (propertiesIn.optString("extendedProps", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS;
+                  }
+                  if (propertiesIn.optString("indicate", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_INDICATE;
+                    includeClientConfiguration = true;
+                  }
+                  if (propertiesIn.optString("notify", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_NOTIFY;
+                    includeClientConfiguration = true;
+                  }
+                  if (propertiesIn.optString("read", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_READ;
+                  }
+                  if (propertiesIn.optString("signedWrite", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE;
+                  }
+                  if (propertiesIn.optString("write", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_WRITE;
+                  }
+                  if (propertiesIn.optString("writeNoResponse", null) != null) {
+                    properties |= BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE;
+                  }
+                  if (propertiesIn.optString("notifyEncryptionRequired", null) != null) {
+                    properties |= 0x100;
+                  }
+                  if (propertiesIn.optString("indicateEncryptionRequired", null) != null) {
+                    properties |= 0x200;
+                  }
                 }
-
+          
                 JSONObject permissionsIn = characteristicIn.optJSONObject("permissions");
                 int permissions = 0;
                 if (permissionsIn != null) {
-                    if (permissionsIn.optString("read", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_READ;
-                    }
-                    if (permissionsIn.optString("readEncrypted", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED;
-                    }
-                    if (permissionsIn.optString("readEncryptedMITM", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED_MITM;
-                    }
-                    if (permissionsIn.optString("write", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE;
-                    }
-                    if (permissionsIn.optString("writeEncrypted", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED;
-                    }
-                    if (permissionsIn.optString("writeEncryptedMITM", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED_MITM;
-                    }
-                    if (permissionsIn.optString("writeSigned", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED;
-                    }
-                    if (permissionsIn.optString("writeSignedMITM", null) != null) {
-                        permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED_MITM;
-                    }
+                  if (permissionsIn.optString("read", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_READ;
+                  }
+                  if (permissionsIn.optString("readEncrypted", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED;
+                  }
+                  if (permissionsIn.optString("readEncryptedMITM", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED_MITM;
+                  }
+                  if (permissionsIn.optString("write", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE;
+                  }
+                  if (permissionsIn.optString("writeEncrypted", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED;
+                  }
+                  if (permissionsIn.optString("writeEncryptedMITM", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED_MITM;
+                  }
+                  if (permissionsIn.optString("writeSigned", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED;
+                  }
+                  if (permissionsIn.optString("writeSignedMITM", null) != null) {
+                    permissions |= BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED_MITM;
+                  }
                 }
-
+          
                 BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(characteristicUuid, properties, permissions);
-
+          
                 if (includeClientConfiguration) {
-                    BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(clientConfigurationDescriptorUuid, BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
-                    characteristic.addDescriptor(descriptor);
+                  BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(clientConfigurationDescriptorUuid, BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
+                  characteristic.addDescriptor(descriptor);
                 }
-
+          
+                JSONArray descriptorsIn = obj.optJSONArray("descriptors");
+          
+                if (descriptorsIn != null) {
+                  for (int j = 0; j < descriptorsIn.length(); j++) {
+                    JSONObject descriptorIn = null;
+          
+                    try {
+                      descriptorIn = descriptorsIn.getJSONObject(j);
+                    } catch (JSONException ex) {
+                      continue;
+                    }
+          
+                    UUID descriptorUuid = getUUID(descriptorIn.optString("uuid", null));
+          
+                    permissionsIn = descriptorIn.optJSONObject("permissions");
+                    permissions = 0;
+                    if (permissionsIn != null) {
+                      if (permissionsIn.optString("read", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_READ;
+                      }
+                      if (permissionsIn.optString("readEncrypted", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED;
+                      }
+                      if (permissionsIn.optString("readEncryptedMITM", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED_MITM;
+                      }
+                      if (permissionsIn.optString("write", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_WRITE;
+                      }
+                      if (permissionsIn.optString("writeEncrypted", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_WRITE_ENCRYPTED;
+                      }
+                      if (permissionsIn.optString("writeEncryptedMITM", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_WRITE_ENCRYPTED_MITM;
+                      }
+                      if (permissionsIn.optString("writeSigned", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_WRITE_SIGNED;
+                      }
+                      if (permissionsIn.optString("writeSignedMITM", null) != null) {
+                        permissions |= BluetoothGattDescriptor.PERMISSION_WRITE_SIGNED_MITM;
+                      }
+                    }
+          
+                    BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(descriptorUuid, permissions);
+          
+                    characteristic.addDescriptor(descriptor);
+                  }
+                }
+          
                 service.addCharacteristic(characteristic);
-            }
+              }
 
             addServiceAction(service, callbackContext);
 
@@ -593,7 +640,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             removeAllServicesAction(callbackContext);
 
-        } else if (action.equals(RESPOND)) {
+        } /* else if (action.equals(RESPOND)) {
 
             int requestId = args.getInt(0);
             byte[] value = args.getArrayBuffer(1);
@@ -606,7 +653,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
             respondAction(requestId, value, offset, device, callbackContext);
 
-        } else if (action.equals(NOTIFY)) {
+        } */ else if (action.equals(NOTIFY)) {
 
             UUID serviceUuid = uuidFromString(args.getString(0));
             BluetoothGattService service = gattServer.getService(serviceUuid);
@@ -702,7 +749,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             webView.getContext().registerReceiver(this.stateReceiver, intentFilter);
         } catch (Exception e) {
-            LOG.e(TAG, "Error registering state receiver: " + e.getMessage(), e);
         }
     }
 
@@ -711,7 +757,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             try {
                 webView.getContext().unregisterReceiver(this.stateReceiver);
             } catch (Exception e) {
-                LOG.e(TAG, "Error unregistering state receiver: " + e.getMessage(), e);
             }
         }
         this.stateCallback = null;
@@ -781,7 +826,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             callbackContext.success();
         } else {
             String message = "Peripheral " + macAddress + " not found.";
-            LOG.w(TAG, message);
             callbackContext.error(message);
         }
 
@@ -837,7 +881,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             peripheral.requestMtu(callbackContext, mtuValue);
         } else {
             String message = "Peripheral " + macAddress + " not found.";
-            LOG.w(TAG, message);
             callbackContext.error(message);
         }
     }
@@ -875,7 +918,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             peripheral.refreshDeviceCache(callbackContext, timeoutMillis);
         } else {
             String message = "Peripheral " + macAddress + " not found.";
-            LOG.w(TAG, message);
             callbackContext.error(message);
         }
     }
@@ -979,7 +1021,6 @@ public class BLECentralPlugin extends CordovaPlugin {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            LOG.w(TAG, "Scan Result");
             super.onScanResult(callbackType, result);
             BluetoothDevice device = result.getDevice();
             String address = device.getAddress();
@@ -1027,7 +1068,6 @@ public class BLECentralPlugin extends CordovaPlugin {
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds, ScanSettings scanSettings) {
 
         if (!locationServicesEnabled() && Build.VERSION.SDK_INT < 31) {
-            LOG.w(TAG, "Location Services are disabled");
         }
 
         if (Build.VERSION.SDK_INT >= 31) { // (API 31) Build.VERSION_CODE.S
@@ -1053,7 +1093,6 @@ public class BLECentralPlugin extends CordovaPlugin {
                 permissionsList.add(Manifest.permission.ACCESS_FINE_LOCATION);
                 String accessBackgroundLocation = this.preferences.getString("accessBackgroundLocation", "false");
                 if(accessBackgroundLocation == "true") {
-                    LOG.w(TAG, "ACCESS_BACKGROUND_LOCATION is being requested");
                     permissionsList.add("android.permission.ACCESS_BACKGROUND_LOCATION"); // (API 29) Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 }
                 String[] permissionsArray = new String[permissionsList.size()];
@@ -1074,7 +1113,6 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         // return error if already scanning
         if (bluetoothAdapter.isDiscovering()) {
-            LOG.w(TAG, "Tried to start scan while already running.");
             callbackContext.error("Tried to start scan while already running.");
             return;
         }
@@ -1109,7 +1147,6 @@ public class BLECentralPlugin extends CordovaPlugin {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    LOG.d(TAG, "Stopping Scan");
                     bluetoothLeScanner.stopScan(leScanCallback);
                 }
             }, scanSeconds * 1000);
@@ -1125,7 +1162,6 @@ public class BLECentralPlugin extends CordovaPlugin {
         try {
             locationMode = Settings.Secure.getInt(cordova.getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
         } catch (Settings.SettingNotFoundException e) {
-            LOG.e(TAG, "Location Mode Setting Not Found", e);
         }
         return (locationMode > 0);
     }
@@ -1152,12 +1188,10 @@ public class BLECentralPlugin extends CordovaPlugin {
         if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
 
             if (resultCode == Activity.RESULT_OK) {
-                LOG.d(TAG, "User enabled Bluetooth");
                 if (enableBluetoothCallback != null) {
                     enableBluetoothCallback.success();
                 }
             } else {
-                LOG.d(TAG, "User did *NOT* enable Bluetooth");
                 if (enableBluetoothCallback != null) {
                     enableBluetoothCallback.error("User did not enable Bluetooth");
                 }
@@ -1179,19 +1213,15 @@ public class BLECentralPlugin extends CordovaPlugin {
         for (int i = 0; i < permissions.length; i++) {
 
             if (permissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION) && grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                LOG.d(TAG, "User *rejected* Fine Location Access");
                 this.permissionCallback.error("Location permission not granted.");
                 return;
             } else if (permissions[i].equals(Manifest.permission.ACCESS_COARSE_LOCATION) && grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                LOG.d(TAG, "User *rejected* Coarse Location Access");
                 this.permissionCallback.error("Location permission not granted.");
                 return;
             } else if (permissions[i].equals(Manifest.permission.BLUETOOTH_SCAN) && grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                LOG.d(TAG, "User *rejected* Bluetooth_Scan Access");
                 this.permissionCallback.error("Bluetooth scan permission not granted.");
                 return;
             } else if (permissions[i].equals(Manifest.permission.BLUETOOTH_CONNECT) && grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                LOG.d(TAG, "User *rejected* Bluetooth_Connect Access");
                 this.permissionCallback.error("Bluetooth Connect permission not granted.");
                 return;
             }
@@ -1199,27 +1229,23 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         switch(requestCode) {
             case REQUEST_ACCESS_LOCATION:
-                LOG.d(TAG, "User granted Location Access");
                 findLowEnergyDevices(permissionCallback, serviceUUIDs, scanSeconds);
                 this.permissionCallback = null;
                 this.serviceUUIDs = null;
                 this.scanSeconds = -1;
                 break;
             case REQUEST_BLUETOOTH_SCAN:
-                LOG.d(TAG, "User granted Bluetooth Scan Access");
                 findLowEnergyDevices(permissionCallback, serviceUUIDs, scanSeconds);
                 this.permissionCallback = null;
                 this.serviceUUIDs = null;
                 this.scanSeconds = -1;
                 break;
             case REQUEST_BLUETOOTH_CONNECT:
-                LOG.d(TAG, "User granted Bluetooth Connect Access");
                 connect(permissionCallback, deviceMacAddress);
                 this.permissionCallback = null;
                 this.deviceMacAddress = null;
                 break;
             case REQUEST_BLUETOOTH_CONNECT_AUTO:
-                LOG.d(TAG, "User granted Bluetooth Connect Access");
                 autoConnect(permissionCallback, deviceMacAddress);
                 this.permissionCallback = null;
                 this.deviceMacAddress = null;

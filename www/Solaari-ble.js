@@ -33,8 +33,8 @@ var stringToArrayBuffer = function(str) {
     });
   }
   
-  var bluetoothleName = "Solaari-ble";
-  var ble = {
+  var bluetoothleName = "SolaariBLE";
+  var SolaariBLE = {
   
     // SLAVE
     scan: function (services, seconds, success, failure) {
@@ -228,31 +228,23 @@ var stringToArrayBuffer = function(str) {
     },
   
     // MASTER
-    initializePeripheral: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "initializePeripheral", [params]);
+    initializePeripheral: function(success, failure) {
+      exec(success, failure, bluetoothleName, "initializePeripheral", []);
     },
-    addService: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "addService", [params]);
+    addService: function(serviceUUID, characteristics, success, failure) {
+      exec(success, failure, bluetoothleName, "addService", [serviceUUID, characteristics]);
     },
-    removeService: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "removeService", [params]);
+    removeService: function(serviceUUID, success, failure) {
+      exec(success, failure, bluetoothleName, "removeService", [serviceUUID]);
     },
-    removeAllServices: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "removeAllServices", [params]);
+    removeAllServices: function(success, failure) {
+      exec(success, failure, bluetoothleName, "removeAllServices", []);
     },
-    startAdvertising: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "startAdvertising", [params]);
-    },
-    stopAdvertising: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "stopAdvertising", [params]);
-    },
-    isAdvertising: function(successCallback, errorCallback) {
-      exec(successCallback, errorCallback, bluetoothleName, "isAdvertising", []);
-    },
-    respond: function(successCallback, errorCallback, params) {
+    /* respond: function(successCallback, errorCallback, params) {
       exec(successCallback, errorCallback, bluetoothleName, "respond", [params]);
-    },
-    notify: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "notify", [params]);
+    }, */
+    notify: function(serviceUUID, characteristicUUID, value, deviceAddress, success, failure) {
+      exec(success, failure, bluetoothleName, "notify", [serviceUUID, characteristicUUID, value, deviceAddress]);
     },
   }
+  module.exports = SolaariBLE;

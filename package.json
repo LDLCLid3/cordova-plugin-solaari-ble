@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-solaari-ble",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cordova BLE plugin for Solaari Mobile Application",
   "cordova": {
     "id": "cordova-plugin-solaari-ble",

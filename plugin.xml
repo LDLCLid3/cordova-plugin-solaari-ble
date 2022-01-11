@@ -5,10 +5,10 @@
     xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <name>Solaari-ble</name>
+    <name>SolaariBLE</name>
 
-    <js-module name="solaarible" src="www/Solaari-ble.js">
-        <clobbers target="window.Solaari-ble" />
+    <js-module name="SolaariBLE" src="www/Solaari-ble.js">
+        <clobbers target="window.SolaariBLE" />
     </js-module>
     
     <platform name="android">
@@ -16,7 +16,7 @@
         <preference name="ACCESS_BACKGROUND_LOCATION" default="false" />
         
         <config-file target="res/xml/config.xml" parent="/widget">
-            <feature name="Solaari-ble">
+            <feature name="SolaariBLE">
                 <param name="android-package" value="com.megster.cordova.ble.central.BLECentralPlugin"/>
             </feature>
         </config-file>
@@ -58,7 +58,7 @@
 
         <preference name="IOS_INIT_ON_LOAD" default="true" />
         <config-file target="config.xml" parent="/widget">
-            <feature name="Solaari-ble">
+            <feature name="SolaariBLE">
                 <param name="ios-package" value="BLECentralPlugin" onload="$IOS_INIT_ON_LOAD"/>
             </feature>
         </config-file>
