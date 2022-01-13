@@ -45,7 +45,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     [super pluginInitialize];
 
     peripherals = [NSMutableSet new];
-    manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{CBCentralManagerOptionShowPowerAlertKey: @NO}];
 
     connectCallbacks = [NSMutableDictionary new];
     connectCallbackLatches = [NSMutableDictionary new];
@@ -66,6 +65,13 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 #pragma mark - Cordova Plugin Methods
+
+- (void)enable:(CDVInvokedUrlCommand *)command {
+    manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{CBCentralManagerOptionShowPowerAlertKey: @NO}];
+    
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
 // TODO add timeout
 - (void)connect:(CDVInvokedUrlCommand *)command {
