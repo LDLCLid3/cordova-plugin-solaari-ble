@@ -107,18 +107,11 @@ public class BLECentralPlugin extends CordovaPlugin {
     private static final String ADD_SERVICE = "addService";
     private static final String REMOVE_SERVICE = "removeService";
     private static final String REMOVE_ALL_SERVICE = "removeAllServices";
-    private static final String START_ADVERTISING = "startAdvertising";
-    private static final String STOP_ADVERTISING = "stopAdvertising";
-    private static final String IS_ADVERTISING = "isAdvertising";
-    private static final String RESPOND = "respond";
     private static final String NOTIFY = "notify";
 
     private BluetoothGattServer gattServer;
     private CallbackContext initPeripheralCallback;
     private CallbackContext addServiceCallback;
-    private CallbackContext advertiseCallbackContext;
-    private AdvertiseCallback advertiseCallback = null;
-    private boolean isAdvertising = false;
     private final UUID clientConfigurationDescriptorUuid = UUID.fromString("00002902-0000-1000-8000-00805F9B34FB");
     // END OF PERIPHERAL_PART
 
@@ -389,13 +382,19 @@ public class BLECentralPlugin extends CordovaPlugin {
                 case "":
                     break;
                 case "all":
-                    scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_ALL_MATCHES );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_ALL_MATCHES );
+                    }
                     break;
                 case "first":
-                    scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_FIRST_MATCH );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_FIRST_MATCH );
+                    }
                     break;
                 case "lost":
-                    scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_MATCH_LOST );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setCallbackType( ScanSettings.CALLBACK_TYPE_MATCH_LOST );
+                    }
                     break;
                 default:
                     callbackContext.error("callbackType must be one of: all | first | lost");
@@ -407,10 +406,14 @@ public class BLECentralPlugin extends CordovaPlugin {
                 case "":
                     break;
                 case "aggressive":
-                    scanSettings.setCallbackType( ScanSettings.MATCH_MODE_AGGRESSIVE );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setCallbackType( ScanSettings.MATCH_MODE_AGGRESSIVE );
+                    }
                     break;
                 case "sticky":
-                    scanSettings.setCallbackType( ScanSettings.MATCH_MODE_STICKY );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setCallbackType( ScanSettings.MATCH_MODE_STICKY );
+                    }
                     break;
                 default:
                     callbackContext.error("matchMode must be one of: aggressive | sticky");
@@ -422,13 +425,19 @@ public class BLECentralPlugin extends CordovaPlugin {
                 case "":
                     break;
                 case "one":
-                    scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT );
+                    }
                     break;
                 case "few":
-                    scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_FEW_ADVERTISEMENT );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_FEW_ADVERTISEMENT );
+                    }
                     break;
                 case "max":
-                    scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        scanSettings.setNumOfMatches( ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT );
+                    }
                     break;
                 default:
                     callbackContext.error("numOfMatches must be one of: one | few | max");
@@ -499,7 +508,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                   continue;
                 }
           
-                UUID characteristicUuid = getUUID(characteristicIn.optString("uuid", null));
+                UUID characteristicUuid = uuidFromString(characteristicIn.optString("uuid", null));
           
                 boolean includeClientConfiguration = false;
           
@@ -576,7 +585,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                   characteristic.addDescriptor(descriptor);
                 }
           
-                JSONArray descriptorsIn = obj.optJSONArray("descriptors");
+                JSONArray descriptorsIn = characteristicIn.optJSONArray("descriptors");
           
                 if (descriptorsIn != null) {
                   for (int j = 0; j < descriptorsIn.length(); j++) {
@@ -588,7 +597,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                       continue;
                     }
           
-                    UUID descriptorUuid = getUUID(descriptorIn.optString("uuid", null));
+                    UUID descriptorUuid = uuidFromString(descriptorIn.optString("uuid", null));
           
                     permissionsIn = descriptorIn.optJSONObject("permissions");
                     permissions = 0;
@@ -667,12 +676,12 @@ public class BLECentralPlugin extends CordovaPlugin {
                 validAction = false;
             }
 
-            byte[] value = args.getArrayBuffer(3);
+            byte[] value = args.getArrayBuffer(2);
             if (value == null) {
                 validAction = false;
             }
 
-            String address = args.getString(4);
+            String address = args.getString(3);
             if (address == null) {
                 validAction = false;
             }
@@ -1355,8 +1364,8 @@ public class BLECentralPlugin extends CordovaPlugin {
         callbackContext.success(returnObj);
     }
     
-    private void respondAction(int requestId, byte[] value, int offset, BluetoothDevice device, CallbackContext callbackContext) {
-    
+    /* private void respondAction(int requestId, byte[] value, int offset, BluetoothDevice device, CallbackContext callbackContext) {
+
         boolean result = gattServer.sendResponse(device, requestId, 0, offset, value);
         if (result) {
           JSONObject returnObj = new JSONObject();
@@ -1370,7 +1379,7 @@ public class BLECentralPlugin extends CordovaPlugin {
           addProperty(returnObj, "requestId", requestId);
           callbackContext.error(returnObj);
         }
-    }
+    }*/
     
     private void notifyAction(BluetoothGattService service, BluetoothGattCharacteristic characteristic, byte[] value, BluetoothDevice device, CallbackContext callbackContext) {
 
@@ -1406,6 +1415,12 @@ public class BLECentralPlugin extends CordovaPlugin {
     
         //Wait for onNotificationSent event
         boolean result = gattServer.notifyCharacteristicChanged(device, characteristic, isIndicate);
+        if (result) {
+            JSONObject returnObj = new JSONObject();
+            addProperty(returnObj, "status", "notifySent");
+            addProperty(returnObj, "value", value);
+            callbackContext.success(returnObj);
+        }
         if (!result) {
           JSONObject returnObj = new JSONObject();
           addProperty(returnObj, "error", "notify");

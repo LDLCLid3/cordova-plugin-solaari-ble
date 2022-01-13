@@ -42,7 +42,6 @@
     CBPeripheralManager* peripheralManager;
     NSString* addServiceCallback;
     NSString* advertisingCallback;
-    BOOL areLogsEnabled;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;

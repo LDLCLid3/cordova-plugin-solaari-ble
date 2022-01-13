@@ -41,10 +41,9 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 @synthesize manager;
 @synthesize peripherals;
 
-- (void)pluginInitialize {
+- (void)pluginInitialize:(CDVInvokedUrlCommand *)command {
     [super pluginInitialize];
 
-    areLogsEnabled = false;
     peripherals = [NSMutableSet new];
     manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{CBCentralManagerOptionShowPowerAlertKey: @NO}];
 
@@ -70,19 +69,15 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // TODO add timeout
 - (void)connect:(CDVInvokedUrlCommand *)command {
-    if (areLogsEnabled) NSLog(@"connect");
     NSString *uuid = [command argumentAtIndex:0];
 
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
 
     if (peripheral) {
-        if (areLogsEnabled) NSLog(@"Connecting to peripheral with UUID : %@", uuid);
-
         [connectCallbacks setObject:[command.callbackId copy] forKey:[peripheral uuidAsString]];
         [manager connectPeripheral:peripheral options:nil];
     } else {
         NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", uuid];
-        if (areLogsEnabled) NSLog(@"%@", error);
         CDVPluginResult *pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -93,19 +88,15 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 // This works different than Android. iOS needs to know about the peripheral UUID
 // If not scanning, try connectedPeripheralsWIthServices or peripheralsWithIdentifiers
 - (void)autoConnect:(CDVInvokedUrlCommand *)command {
-    if (areLogsEnabled) NSLog(@"autoConnect");
     NSString *uuid = [command argumentAtIndex:0];
     
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
     
     if (peripheral) {
-        if (areLogsEnabled) NSLog(@"Autoconnecting to peripheral with UUID : %@", uuid);
-        
         [connectCallbacks setObject:[command.callbackId copy] forKey:[peripheral uuidAsString]];
         [manager connectPeripheral:peripheral options:nil];
     } else {
         NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", uuid];
-        if (areLogsEnabled) NSLog(@"%@", error);
         CDVPluginResult *pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -115,14 +106,11 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // disconnect: function (device_id, success, failure) {
 - (void)disconnect:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"disconnect");
-
     NSString *uuid = [command argumentAtIndex:0];
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
 
     if (!peripheral) {
         NSString *message = [NSString stringWithFormat:@"Peripheral %@ not found", uuid];
-        if (areLogsEnabled) NSLog(@"%@", message);
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:message];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
@@ -142,8 +130,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // read: function (device_id, service_uuid, characteristic_uuid, success, failure) {
 - (void)read:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"read");
-
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyRead];
     if (context) {
         CBPeripheral *peripheral = [context peripheral];
@@ -192,8 +178,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // writeWithoutResponse: function (device_id, service_uuid, characteristic_uuid, value, success, failure) {
 - (void)writeWithoutResponse:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"writeWithoutResponse");
-
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyWriteWithoutResponse];
     NSData *message = [command argumentAtIndex:3]; // This is binary
 
@@ -222,8 +206,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 // success callback is called on notification
 // notify: function (device_id, service_uuid, characteristic_uuid, success, failure) {
 - (void)startNotification:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"registering for notification");
-
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyNotify]; // TODO name this better
 
     if (context) {
@@ -248,8 +230,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // stopNotification: function (device_id, service_uuid, characteristic_uuid, success, failure) {
 - (void)stopNotification:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"stop notification");
-
     BLECommandContext *context = [self getData:command prop:CBCharacteristicPropertyNotify];
 
     if (context) {
@@ -281,7 +261,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)scan:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"scan");
     discoverPeripheralCallbackId = [command.callbackId copy];
 
     NSArray<NSString *> *serviceUUIDStrings = [command argumentAtIndex:0];
@@ -298,7 +277,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)startScan:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"startScan");
     discoverPeripheralCallbackId = [command.callbackId copy];
     NSArray<NSString *> *serviceUUIDStrings = [command argumentAtIndex:0];
     NSArray<CBUUID *> *serviceUUIDs = [self uuidStringsToCBUUIDs:serviceUUIDStrings];
@@ -307,7 +285,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)startScanWithOptions:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"startScanWithOptions");
     discoverPeripheralCallbackId = [command.callbackId copy];
     NSArray<NSString *> *serviceUUIDStrings = [command argumentAtIndex:0];
     NSArray<CBUUID *> *serviceUUIDs = [self uuidStringsToCBUUIDs:serviceUUIDStrings];
@@ -324,8 +301,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)stopScan:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"stopScan");
-
     [manager stopScan];
 
     if (discoverPeripheralCallbackId) {
@@ -358,7 +333,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
         NSString *state = [bluetoothStates objectForKey:[NSNumber numberWithInt:bluetoothState]];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];
         [pluginResult setKeepCallbackAsBool:TRUE];
-        if (areLogsEnabled) NSLog(@"Start state notifications on callback %@", stateCallbackId);
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"State callback already registered"];
     }
@@ -385,7 +359,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)readRSSI:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"readRSSI");
     NSString *uuid = [command argumentAtIndex:0];
 
     CBPeripheral *peripheral = [self findPeripheralByUUID:uuid];
@@ -395,7 +368,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
         [peripheral readRSSI];
     } else {
         NSString *error = [NSString stringWithFormat:@"Need to be connected to peripheral %@ to read RSSI.", uuid];
-        if (areLogsEnabled) NSLog(@"%@", error);
         CDVPluginResult *pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -405,7 +377,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 // Returns a list of the peripherals (containing any of the specified services) currently connected to the system.
 // https://developer.apple.com/documentation/corebluetooth/CBManager/1518924-retrieveconnectedperipheralswith?language=objc
 - (void)connectedPeripheralsWithServices:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"connectedPeripheralsWithServices");
     NSArray *serviceUUIDStrings = [command argumentAtIndex:0];
     NSArray<CBUUID *> *serviceUUIDs = [self uuidStringsToCBUUIDs:serviceUUIDStrings];
 
@@ -419,14 +390,12 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
     CDVPluginResult *pluginResult = nil;
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:connected];
-    if (areLogsEnabled) NSLog(@"Connected peripherals with services %@ %@", serviceUUIDStrings, connected);
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 // Returns a list of known peripherals by their identifiers.
 // https://developer.apple.com/documentation/corebluetooth/CBManager/1519127-retrieveperipheralswithidentifie?language=objc
 - (void)peripheralsWithIdentifiers:(CDVInvokedUrlCommand*)command {
-    if (areLogsEnabled) NSLog(@"peripheralsWithIdentifiers");
     NSArray *identifierUUIDStrings = [command argumentAtIndex:0];
     NSArray<NSUUID *> *identifiers = [self uuidStringsToNSUUIDs:identifierUUIDStrings];
     
@@ -441,7 +410,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     
     CDVPluginResult *pluginResult = nil;
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:found];
-    if (areLogsEnabled) NSLog(@"Peripherals with identifiers %@ %@", identifierUUIDStrings, found);
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -449,8 +417,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 #pragma mark - timers
 
 -(void)stopScanTimer:(NSTimer *)timer {
-    if (areLogsEnabled) NSLog(@"stopScanTimer");
-
     [manager stopScan];
 
     if (discoverPeripheralCallbackId) {
@@ -468,7 +434,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     if (discoverPeripheralCallbackId) {
         CDVPluginResult *pluginResult = nil;
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:[peripheral asDictionary]];
-        if (areLogsEnabled) NSLog(@"Discovered %@", [peripheral asDictionary]);
         [pluginResult setKeepCallbackAsBool:TRUE];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:discoverPeripheralCallbackId];
     }
@@ -476,21 +441,11 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 - (void)centralManagerDidUpdateState:(CBManager *)central
 {
-    if (areLogsEnabled) NSLog(@"Status of CoreBluetooth central manager changed %ld %@", (long)central.state, [self centralManagerStateToString: central.state]);
-
-    if (central.state == CBManagerStateUnsupported)
-    {
-        if (areLogsEnabled) NSLog(@"=============================================================");
-        if (areLogsEnabled) NSLog(@"WARNING: This hardware does not support Bluetooth Low Energy.");
-        if (areLogsEnabled) NSLog(@"=============================================================");
-    }
-
     if (stateCallbackId != nil) {
         CDVPluginResult *pluginResult = nil;
         NSString *state = [bluetoothStates objectForKey:@(central.state)];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];
         [pluginResult setKeepCallbackAsBool:TRUE];
-        if (areLogsEnabled) NSLog(@"Report Bluetooth state \"%@\" on callback %@", state, stateCallbackId);
         [self.commandDelegate sendPluginResult:pluginResult callbackId:stateCallbackId];
     }
 
@@ -503,8 +458,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)centralManager:(CBManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
-    if (areLogsEnabled) NSLog(@"didConnectPeripheral");
-
     peripheral.delegate = self;
 
     // NOTE: it's inefficient to discover all services
@@ -514,8 +467,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)centralManager:(CBManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
-    if (areLogsEnabled) NSLog(@"didDisconnectPeripheral");
-
     NSString *connectCallbackId = [connectCallbacks valueForKey:[peripheral uuidAsString]];
     [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
     [self cleanupOperationCallbacks:peripheral withResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Peripheral disconnected"]];
@@ -541,8 +492,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)centralManager:(CBManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
-    if (areLogsEnabled) NSLog(@"didFailToConnectPeripheral");
-
     NSString *connectCallbackId = [connectCallbacks valueForKey:[peripheral uuidAsString]];
     [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
     [self cleanupOperationCallbacks:peripheral withResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Peripheral disconnected"]];
@@ -555,8 +504,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 #pragma mark CBPeripheralDelegate
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
-    if (areLogsEnabled) NSLog(@"didDiscoverServices");
-
     // save the services to tell when all characteristics have been discovered
     NSMutableSet *servicesForPeriperal = [NSMutableSet new];
     [servicesForPeriperal addObjectsFromArray:peripheral.services];
@@ -568,8 +515,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
-    if (areLogsEnabled) NSLog(@"didDiscoverCharacteristicsForService");
-
     NSString *peripheralUUIDString = [peripheral uuidAsString];
     NSString *connectCallbackId = [connectCallbacks valueForKey:peripheralUUIDString];
     NSMutableSet *latch = [connectCallbackLatches valueForKey:peripheralUUIDString];
@@ -585,16 +530,9 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
         }
         [connectCallbackLatches removeObjectForKey:peripheralUUIDString];
     }
-
-    if (areLogsEnabled) NSLog(@"Found characteristics for service %@", service);
-    for (CBCharacteristic *characteristic in service.characteristics) {
-        if (areLogsEnabled) NSLog(@"Characteristic %@", characteristic);
-    }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
-    if (areLogsEnabled) NSLog(@"didUpdateValueForCharacteristic");
-
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     NSString *notifyCallbackId = [notificationCallbacks objectForKey:key];
 
@@ -603,7 +541,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
         CDVPluginResult *pluginResult = nil;
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArrayBuffer:data];
@@ -620,7 +557,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
         CDVPluginResult *pluginResult = nil;
         
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArrayBuffer:data];
@@ -641,7 +577,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
     if (!characteristic.isNotifying && stopNotificationCallbackId) {
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -654,7 +589,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     
     if (characteristic.isNotifying && startNotificationCallbackId) {
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:startNotificationCallbackId];
             [startNotificationCallbacks removeObjectForKey:key];
@@ -676,7 +610,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     if (writeCallbackId) {
         CDVPluginResult *pluginResult = nil;
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult
                 resultWithStatus:CDVCommandStatus_ERROR
                 messageAsString:[error localizedDescription]
@@ -691,14 +624,12 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)peripheral:(CBPeripheral*)peripheral didReadRSSI:(NSNumber*)rssi error:(NSError*)error {
-    if (areLogsEnabled) NSLog(@"didReadRSSI %@", rssi);
     NSString *key = [peripheral uuidAsString];
     NSString *readRSSICallbackId = [readRSSICallbacks objectForKey: key];
     [peripheral setSavedRSSI:rssi];
     if (readRSSICallbackId) {
         CDVPluginResult* pluginResult = nil;
         if (error) {
-            if (areLogsEnabled) NSLog(@"%@", error);
             pluginResult = [CDVPluginResult
                 resultWithStatus:CDVCommandStatus_ERROR
                 messageAsString:[error localizedDescription]];
@@ -741,7 +672,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // Find a characteristic in service with a specific property
 -(CBCharacteristic *) findCharacteristicFromUUID:(CBUUID *)UUID service:(CBService*)service prop:(CBCharacteristicProperties)prop {
-    if (areLogsEnabled) NSLog(@"Looking for %@ with properties %lu", UUID, (unsigned long)prop);
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
@@ -754,7 +684,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // Find a characteristic in service by UUID
 -(CBCharacteristic *) findCharacteristicFromUUID:(CBUUID *)UUID service:(CBService*)service {
-    if (areLogsEnabled) NSLog(@"Looking for %@", UUID);
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
@@ -780,8 +709,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 // expecting deviceUUID, serviceUUID, characteristicUUID in command.arguments
 -(BLECommandContext*) getData:(CDVInvokedUrlCommand*)command prop:(CBCharacteristicProperties)prop {
-    if (areLogsEnabled) NSLog(@"getData");
-
     CDVPluginResult *pluginResult = nil;
 
     NSString *deviceUUIDString = [command argumentAtIndex:0];
@@ -794,9 +721,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     CBPeripheral *peripheral = [self findPeripheralByUUID:deviceUUIDString];
 
     if (!peripheral) {
-
-        if (areLogsEnabled) NSLog(@"Could not find peripheral with UUID %@", deviceUUIDString);
-
         NSString *errorMessage = [NSString stringWithFormat:@"Could not find peripheral with UUID %@", deviceUUIDString];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -808,11 +732,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
     if (!service)
     {
-        if (areLogsEnabled) NSLog(@"Could not find service with UUID %@ on peripheral with UUID %@",
-              serviceUUIDString,
-              peripheral.identifier.UUIDString);
-
-
         NSString *errorMessage = [NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@",
                                   serviceUUIDString,
                                   peripheral.identifier.UUIDString];
@@ -836,11 +755,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
     if (!characteristic)
     {
-        if (areLogsEnabled) NSLog(@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
-              characteristicUUIDString,
-              serviceUUIDString,
-              peripheral.identifier.UUIDString);
-
         NSString *errorMessage = [NSString stringWithFormat:
                                   @"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
                                   characteristicUUIDString,
@@ -874,7 +788,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
             NSString *callbackId = [readCallbacks valueForKey:key];
             [self.commandDelegate sendPluginResult:result callbackId:callbackId];
             [readCallbacks removeObjectForKey:key];
-            if (areLogsEnabled) NSLog(@"Cleared read callback %@ for key %@", callbackId, key);
         }
     }
     for(id key in writeCallbacks.allKeys) {
@@ -882,7 +795,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
             NSString *callbackId = [writeCallbacks valueForKey:key];
             [self.commandDelegate sendPluginResult:result callbackId:callbackId];
             [writeCallbacks removeObjectForKey:key];
-            if (areLogsEnabled) NSLog(@"Cleared write callback %@ for key %@", callbackId, key);
         }
     }
     for(id key in startNotificationCallbacks.allKeys) {
@@ -890,7 +802,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
             NSString *callbackId = [startNotificationCallbacks valueForKey:key];
             [self.commandDelegate sendPluginResult:result callbackId:callbackId];
             [startNotificationCallbacks removeObjectForKey:key];
-            if (areLogsEnabled) NSLog(@"Cleared start notification callback %@ for key %@", callbackId, key);
         }
     }
     for(id key in stopNotificationCallbacks.allKeys) {
@@ -898,7 +809,6 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
             NSString *callbackId = [stopNotificationCallbacks valueForKey:key];
             [self.commandDelegate sendPluginResult:result callbackId:callbackId];
             [stopNotificationCallbacks removeObjectForKey:key];
-            if (areLogsEnabled) NSLog(@"Cleared stop notification callback %@ for key %@", callbackId, key);
         }
     }
     for(id key in notificationCallbacks.allKeys) {
@@ -906,16 +816,11 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
             NSString *callbackId = [notificationCallbacks valueForKey:key];
             [self.commandDelegate sendPluginResult:result callbackId:callbackId];
             [notificationCallbacks removeObjectForKey:key];
-            if (areLogsEnabled) NSLog(@"Cleared notification callback %@ for key %@", callbackId, key);
         }
     }
 }
 
 #pragma mark - util
-
-- (void)setLogEnabled: (BOOL)logEnabled {
-    areLogsEnabled = logEnabled;
-}
 
 - (NSString*) centralManagerStateToString: (int)state {
     switch(state)
@@ -968,10 +873,9 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
   NSMutableDictionary* options = [NSMutableDictionary dictionary];
 
-  NSDictionary* obj = [self getArgsObject:command.arguments];
-  if (obj != nil) {
-    NSNumber* request = [obj valueForKey:@"request"];
-    NSNumber* restoreKey = [obj valueForKey:@"restoreKey"];
+  if ([command.arguments count] > 1) {
+      NSNumber* request = command.arguments[0];
+      NSString* restoreKey = command.arguments[1];
     if (restoreKey) {
       [options setValue:restoreKey forKey:CBPeripheralManagerOptionRestoreIdentifierKey];
     }
@@ -984,12 +888,11 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)addService:(CDVInvokedUrlCommand *)command {
-  NSDictionary* obj = (NSDictionary *)[command.arguments objectAtIndex:0];
-  CBUUID* serviceUuid = [CBUUID UUIDWithString:[obj valueForKey:@"service"]];
+  CBUUID* serviceUuid = [CBUUID UUIDWithString:[command.arguments objectAtIndex:0]];
 
   CBMutableService* service = [[CBMutableService alloc] initWithType:serviceUuid primary:YES];
 
-  NSArray* characteristicsIn = [obj valueForKey:@"characteristics"];
+  NSArray* characteristicsIn = [command.arguments objectAtIndex:1];
   NSMutableArray* characteristics = [[NSMutableArray alloc] init];
 
   for (NSDictionary* characteristicIn in characteristicsIn) {
@@ -1066,8 +969,7 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 }
 
 - (void)removeService:(CDVInvokedUrlCommand *)command {
-  NSDictionary* obj = (NSDictionary *)[command.arguments objectAtIndex:0];
-  CBUUID* serviceUuid = [CBUUID UUIDWithString:[obj valueForKey:@"service"]];
+  CBUUID* serviceUuid = [CBUUID UUIDWithString:[command.arguments objectAtIndex:0]];
 
   CBService* service = [servicesHash objectForKey:serviceUuid];
   if (!service) {
@@ -1107,136 +1009,8 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)startAdvertising:(CDVInvokedUrlCommand *)command {
-  if (peripheralManager.isAdvertising) {
-    NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-    [returnObj setValue:@"startAdvertising" forKey:@"error"];
-    [returnObj setValue:@"Advertising already started" forKey:@"message"];
-
-    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
-    [pluginResult setKeepCallbackAsBool:false];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-  }
-
-  NSDictionary* obj = (NSDictionary *)[command.arguments objectAtIndex:0];
-  NSMutableDictionary* advertData = [NSMutableDictionary dictionary];
-
-  [advertData setValue:[self getUuids:obj forType:@"services"] forKey:CBAdvertisementDataServiceUUIDsKey];
-  NSString* name = [obj valueForKey:@"name"];
-
-  if (name) {
-    [advertData setValue:name forKey:CBAdvertisementDataLocalNameKey];
-  }
-
-  advertisingCallback = command.callbackId;
-
-  [peripheralManager startAdvertising:advertData];
-}
-
-- (void)stopAdvertising:(CDVInvokedUrlCommand *)command {
-  if (!peripheralManager.isAdvertising) {
-    NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-    [returnObj setValue:@"stopAdvertising" forKey:@"error"];
-    [returnObj setValue:@"Advertising already stopped" forKey:@"message"];
-
-    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
-    [pluginResult setKeepCallbackAsBool:false];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-  }
-
-  [peripheralManager stopAdvertising];
-
-  NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-  [returnObj setValue:@"advertisingStopped" forKey:@"status"];
-  CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
-  [pluginResult setKeepCallbackAsBool:false];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void)isAdvertising:(CDVInvokedUrlCommand *)command {
-  NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-  [returnObj setValue:[NSNumber numberWithBool:peripheralManager.isAdvertising] forKey:@"isAdvertising"];
-  CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
-  [pluginResult setKeepCallbackAsBool:false];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void)respond:(CDVInvokedUrlCommand *)command {
-  NSDictionary* obj = (NSDictionary *)[command.arguments objectAtIndex:0];
-
-  NSNumber* checkRequestId = [obj valueForKey:@"requestId"];
-
-  CBATTRequest* request = [requestsHash objectForKey:checkRequestId];
-  if (!request) {
-    NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-    [returnObj setValue:checkRequestId forKey:@"request"];
-    [returnObj setValue:@"request" forKey:@"error"];
-    [returnObj setValue:@"Request doesn't exist" forKey:@"message"];
-
-    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:returnObj];
-    [pluginResult setKeepCallbackAsBool:false];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    return;
-  }
-
-  NSData* value = [self getValue:obj];
-
-  CBATTError code = CBATTErrorSuccess;
-
-  NSString* checkCode = [obj valueForKey:@"code"];
-  if (checkCode) {
-    if ([checkCode isEqualToString:@"invalidHandle"]) {
-      code = CBATTErrorInvalidHandle;
-    } else if ([checkCode isEqualToString:@"readNotPermitted"]) {
-      code = CBATTErrorReadNotPermitted;
-    } else if ([checkCode isEqualToString:@"writeNotPermitted"]) {
-      code = CBATTErrorWriteNotPermitted;
-    } else if ([checkCode isEqualToString:@"invalidPdu"]) {
-      code = CBATTErrorInvalidPdu;
-    } else if ([checkCode isEqualToString:@"insufficientAuthentication"]) {
-      code = CBATTErrorInsufficientAuthentication;
-    } else if ([checkCode isEqualToString:@"requestNotSupported"]) {
-      code = CBATTErrorRequestNotSupported;
-    } else if ([checkCode isEqualToString:@"invalidOffset"]) {
-      code = CBATTErrorInvalidOffset;
-    } else if ([checkCode isEqualToString:@"insufficientAuthorization"]) {
-      code = CBATTErrorInsufficientAuthorization;
-    } else if ([checkCode isEqualToString:@"prepareQueueFull"]) {
-      code = CBATTErrorPrepareQueueFull;
-    } else if ([checkCode isEqualToString:@"attributeNotFound"]) {
-      code = CBATTErrorAttributeNotFound;
-    } else if ([checkCode isEqualToString:@"attributeNotLong"]) {
-      code = CBATTErrorAttributeNotLong;
-    } else if ([checkCode isEqualToString:@"insufficientEncryptionKeySize"]) {
-      code = CBATTErrorInsufficientEncryptionKeySize;
-    } else if ([checkCode isEqualToString:@"invalidAttributeValueLength"]) {
-      code = CBATTErrorInvalidAttributeValueLength;
-    } else if ([checkCode isEqualToString:@"unlikelyError"]) {
-      code = CBATTErrorUnlikelyError;
-    } else if ([checkCode isEqualToString:@"insufficientEncryption"]) {
-      code = CBATTErrorInsufficientEncryption;
-    } else if ([checkCode isEqualToString:@"unsupportedGroupType"]) {
-      code = CBATTErrorUnsupportedGroupType;
-    } else if ([checkCode isEqualToString:@"invalidHandle"]) {
-      code = CBATTErrorInsufficientResources;
-    }
-  }
-
-  request.value = value;
-  [peripheralManager respondToRequest:request withResult:code];
-
-  NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
-  [returnObj setValue:@"respondedToRequest" forKey:@"status"];
-
-  CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:returnObj];
-  [pluginResult setKeepCallbackAsBool:false];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
 - (void)notify:(CDVInvokedUrlCommand *)command {
-  NSDictionary* obj = (NSDictionary *)[command.arguments objectAtIndex:0];
-
-  CBUUID* serviceUuid = [CBUUID UUIDWithString:[obj valueForKey:@"service"]];
+  CBUUID* serviceUuid = [CBUUID UUIDWithString:[command.arguments objectAtIndex:0]];
   CBService* service = [servicesHash objectForKey:serviceUuid];
   if (!service) {
     NSMutableDictionary* returnObj = [NSMutableDictionary dictionary];
@@ -1250,7 +1024,7 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     return;
   }
 
-  CBUUID* characteristicUuid = [CBUUID UUIDWithString:[obj valueForKey:@"characteristic"]];
+  CBUUID* characteristicUuid = [CBUUID UUIDWithString:[command.arguments objectAtIndex:1]];
   CBCharacteristic* checkCharacteristic = nil;
   for (CBCharacteristic* characteristic in service.characteristics) {
     if ([characteristic.UUID isEqual:characteristicUuid]) {
@@ -1271,7 +1045,7 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
     return;
   }
 
-  NSData* value = [self getValue:obj];
+  NSData* value = [self getValueFromObject:[command.arguments objectAtIndex:2]];
   BOOL result = [peripheralManager updateValue:value forCharacteristic:checkCharacteristic onSubscribedCentrals:nil]; //TODO need to store CBMutableCharacteristic
 
   NSNumber* resultAsObject = [NSNumber numberWithBool:result];
@@ -1288,23 +1062,23 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 
 #pragma mark - General Helpers
 
--(NSDictionary*) getArgsObject:(NSArray *)args {
-  if (args == nil) {
-    return nil;
-  }
-
-  if (args.count != 1) {
-    return nil;
-  }
-
-  NSObject* arg = [args objectAtIndex:0];
-
-  if (![arg isKindOfClass:[NSDictionary class]]) {
-    return nil;
-  }
-
-  return (NSDictionary *)[args objectAtIndex:0];
-}
+//-(NSDictionary*) getArgsObject:(NSArray *)args {
+//  if (args == nil) {
+//    return nil;
+//  }
+//
+//  if (args.count != 1) {
+//    return nil;
+//  }
+//
+//  NSObject* arg = [args objectAtIndex:0];
+//
+//  if (![arg isKindOfClass:[NSDictionary class]]) {
+//    return nil;
+//  }
+//
+//  return (NSDictionary *)[args objectAtIndex:0];
+//}
 
 -(NSData*) getValue:(NSDictionary *) obj {
   NSString* string = [obj valueForKey:keyValue];
@@ -1318,6 +1092,20 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
   }
 
   NSData *data = [[NSData alloc] initWithBase64EncodedString:string options:0];
+
+  return data;
+}
+
+-(NSData*) getValueFromObject:(NSObject *) obj {
+  if (obj == nil) {
+    return nil;
+  }
+
+  if (![obj isKindOfClass:[NSString class]]) {
+    return nil;
+  }
+
+  NSData *data = [[NSData alloc] initWithBase64EncodedString:(NSString*)obj options:0];
 
   return data;
 }

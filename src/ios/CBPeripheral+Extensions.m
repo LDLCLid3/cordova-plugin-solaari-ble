@@ -129,8 +129,6 @@ static NSDictionary *dataToArrayBuffer(NSData* data) {
     // Convert to String keys with Array Buffer values
     NSMutableDictionary *serviceData = [advertisementData objectForKey:CBAdvertisementDataServiceDataKey];
     if (serviceData) {
-        NSLog(@"%@", serviceData);
-
         for (CBUUID *key in [serviceData allKeys]) {
             [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[key UUIDString]];
             [serviceData removeObjectForKey:key];
@@ -157,7 +155,6 @@ static NSDictionary *dataToArrayBuffer(NSData* data) {
     NSMutableArray *solicitiedServiceUUIDs = [advertisementData objectForKey:CBAdvertisementDataSolicitedServiceUUIDsKey];
     NSMutableArray *solicitiedServiceUUIDStrings;
     if (solicitiedServiceUUIDs) {
-        // NSLog(@"%@", solicitiedServiceUUIDs);
         solicitiedServiceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:solicitiedServiceUUIDs.count];
 
         for (CBUUID *uuid in solicitiedServiceUUIDs) {
