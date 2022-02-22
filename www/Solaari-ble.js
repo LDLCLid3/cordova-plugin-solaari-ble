@@ -240,11 +240,19 @@ var stringToArrayBuffer = function(str) {
     removeAllServices: function(success, failure) {
       exec(success, failure, bluetoothleName, "removeAllServices", []);
     },
-    /* respond: function(successCallback, errorCallback, params) {
-      exec(successCallback, errorCallback, bluetoothleName, "respond", [params]);
-    }, */
     notify: function(serviceUUID, characteristicUUID, value, deviceAddress, success, failure) {
       exec(success, failure, bluetoothleName, "notify", [serviceUUID, characteristicUUID, value, deviceAddress]);
+    },
+
+    //NEW COMMAND
+    startStatePermissions: function(success, failure) {
+        exec(success, failure, bluetoothleName, "startStatePermissions", []);
+    },
+    requestPermissions: function( success, failure) {
+        exec(success, failure, bluetoothleName, "requestPermissions", []);
+    },
+    registerPeripheralStatus: function( success, failure) {
+        exec(success, failure, bluetoothleName, "registerPeripheralStatus", []);
     },
   }
   module.exports = SolaariBLE;
