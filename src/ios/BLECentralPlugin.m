@@ -41,7 +41,7 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 @synthesize manager;
 @synthesize peripherals;
 
-- (void)pluginInitialize:(CDVInvokedUrlCommand *)command {
+- (void)pluginInitialize {
     [super pluginInitialize];
 
     peripherals = [NSMutableSet new];
@@ -67,6 +67,7 @@ NSString *const logOperationUnsupported = @"Operation unsupported";
 #pragma mark - Cordova Plugin Methods
 
 - (void)enable:(CDVInvokedUrlCommand *)command {
+    [self pluginInitialize];
     manager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:@{CBCentralManagerOptionShowPowerAlertKey: @NO}];
     
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
