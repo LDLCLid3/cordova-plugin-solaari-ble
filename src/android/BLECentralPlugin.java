@@ -236,7 +236,7 @@ public class BLECentralPlugin extends CordovaPlugin {
             }
             case (REQUEST_CONNECTION_PRIORITY): {
                 String macAddress = args.getString(0);
-                String priority = args.getInt(1);
+                int priority = args.getInt(1);
                 requestConnectionPriority(callbackContext, macAddress, priority);
                 break;
             }
