@@ -236,7 +236,7 @@ public class BLECentralPlugin extends CordovaPlugin {
             }
             case (REQUEST_CONNECTION_PRIORITY): {
                 String macAddress = args.getString(0);
-                String priority = args.getString(1);
+                String priority = args.getInt(1);
                 requestConnectionPriority(callbackContext, macAddress, priority);
                 break;
             }
@@ -894,7 +894,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         }
     }
 
-    private void requestConnectionPriority(CallbackContext callbackContext, String macAddress, String priority) {
+    private void requestConnectionPriority(CallbackContext callbackContext, String macAddress, int priority) {
         Peripheral peripheral = peripherals.get(macAddress);
 
         if (peripheral == null) {
@@ -906,23 +906,7 @@ public class BLECentralPlugin extends CordovaPlugin {
             callbackContext.error("Peripheral " + macAddress + " is not connected.");
             return;
         }
-
-        int androidPriority = BluetoothGatt.CONNECTION_PRIORITY_BALANCED;
-        switch(priority) {
-            case (CONNECTION_PRIORITY_LOW): {
-                androidPriority = BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER;
-                break;
-            }
-            case (CONNECTION_PRIORITY_BALANCED): {
-                androidPriority = BluetoothGatt.CONNECTION_PRIORITY_BALANCED;
-                break;
-            }
-            case (CONNECTION_PRIORITY_HIGH): {
-                androidPriority = BluetoothGatt.CONNECTION_PRIORITY_HIGH;
-                break;
-            }
-        }
-        peripheral.requestConnectionPriority(androidPriority);
+        peripheral.requestConnectionPriority(priority);
         callbackContext.success();
     }
 
